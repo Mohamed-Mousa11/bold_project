@@ -1,0 +1,125 @@
+name: ci-cd
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  EKS_CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
+
+jobs:
+  build-test-scan-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: app
+        run: npm install
+
+      - name: Run basic tests
+        working-directory: app
+        env:
+          PORT: "3000"
+          DB_HOST: "localhost"
+          DB_USER: "test"
+          DB_NAME: "test"
+          DB_PASSWORD: "test"
+        run: npm test
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR and create repo if needed
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
+          echo "ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
+
+          REPO_NAME=demo-app
+          aws ecr describe-repositories --repository-names ${REPO_NAME} >/dev/null 2>&1 ||             aws ecr create-repository --repository-name ${REPO_NAME} >/dev/null
+
+          IMAGE_REPO="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}"
+          echo "IMAGE_REPO=$IMAGE_REPO" >> $GITHUB_ENV
+
+          aws ecr get-login-password --region ${AWS_REGION} | docker login             --username AWS --password-stdin "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+      - name: Build Docker image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA}
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          docker build -t "${IMAGE_REPO}:${IMAGE_TAG}" ./app
+
+      - name: Push Docker image
+        run: docker push "${IMAGE_REPO}:${IMAGE_TAG}"
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: ${{ env.IMAGE_REPO }}:${{ env.IMAGE_TAG }}
+          format: 'table'
+          exit-code: '1'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Set deployment environment
+        id: vars
+        env:
+          STAGING_DB_HOST: ${{ secrets.STAGING_DB_HOST }}
+          STAGING_DB_NAME: ${{ secrets.STAGING_DB_NAME }}
+          STAGING_DB_USER: ${{ secrets.STAGING_DB_USER }}
+          STAGING_DB_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
+          PROD_DB_HOST: ${{ secrets.PROD_DB_HOST }}
+          PROD_DB_NAME: ${{ secrets.PROD_DB_NAME }}
+          PROD_DB_USER: ${{ secrets.PROD_DB_USER }}
+          PROD_DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "k8s_namespace=production" >> $GITHUB_OUTPUT
+            echo "db_host=$PROD_DB_HOST" >> $GITHUB_OUTPUT
+            echo "db_name=$PROD_DB_NAME" >> $GITHUB_OUTPUT
+            echo "db_user=$PROD_DB_USER" >> $GITHUB_OUTPUT
+            echo "db_password=$PROD_DB_PASSWORD" >> $GITHUB_OUTPUT
+          else
+            echo "environment=staging" >> $GITHUB_OUTPUT
+            echo "k8s_namespace=staging" >> $GITHUB_OUTPUT
+            echo "db_host=$STAGING_DB_HOST" >> $GITHUB_OUTPUT
+            echo "db_name=$STAGING_DB_NAME" >> $GITHUB_OUTPUT
+            echo "db_user=$STAGING_DB_USER" >> $GITHUB_OUTPUT
+            echo "db_password=$STAGING_DB_PASSWORD" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update kubeconfig for EKS
+        run: aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+
+      - name: Create namespace
+        run: |
+          kubectl create namespace ${{ steps.vars.outputs.k8s_namespace }} --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create or update ConfigMap
+        run: |
+          kubectl -n ${{ steps.vars.outputs.k8s_namespace }} create configmap app-config             --from-literal=db_host=${{ steps.vars.outputs.db_host }}             --from-literal=db_name=${{ steps.vars.outputs.db_name }}             --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create or update Secret
+        run: |
+          kubectl -n ${{ steps.vars.outputs.k8s_namespace }} create secret generic app-secrets             --from-literal=db_user=${{ steps.vars.outputs.db_user }}             --from-literal=db_password=${{ steps.vars.outputs.db_password }}             --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl -n ${{ steps.vars.outputs.k8s_namespace }} apply -f k8s/service.yaml
+          kubectl -n ${{ steps.vars.outputs.k8s_namespace }} apply -f k8s/deployment.yaml
+          kubectl -n ${{ steps.vars.outputs.k8s_namespace }} set image deployment/demo-app demo-app="${IMAGE_REPO}:${IMAGE_TAG}"
