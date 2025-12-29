@@ -541,5 +541,59 @@ If there were more time, here’s how I’d extend this setup:
 ### 9.2 Tooling verification
 ![04-tool-versions](https://github.com/user-attachments/assets/d0dae2dd-3c1b-4a84-9e65-706bf1446149)
 
+### 9.3 AWS CLI configured
+![05-aws-configure](https://github.com/user-attachments/assets/7c7f4f39-b170-4f9d-a6d8-7f8db5ae840f)
+
+### 9.4 Terraform variables
+![06-terraform-tfvars](https://github.com/user-attachments/assets/fdb7a344-4240-40b0-8b54-11050748b513)
+
+### 9.5 Terraform init
+![07-terraform-init](https://github.com/user-attachments/assets/3c480362-ba15-4695-860f-6568e1310b5e)
+
+### 9.7 Terraform EKS data-source error and fix
+![08b-terraform-error-eks-data](https://github.com/user-attachments/assets/eceb8993-fc9e-48ea-bcc1-2b87493d36f2)
+
+fix: remove this entire block(data,the provider "kubernetes" and the two kubernetes_namespace resources)
+![remove k8s provider](https://github.com/user-attachments/assets/235ce23d-4356-445b-86c4-3a89052b9b37)
+
+### 9.8 EKS and RDS multi-AZ requirement
+![EKS and RDS multi-AZ requirement](https://github.com/user-attachments/assets/a03167f2-ee69-4f7e-a666-a24d34b438b1)
+
+fix: This error occurs because AWS is enforcing good practice: EKS and RDS subnet groups must span at least 2 Availability Zones.
+- We fixed it by:
+  - Creating an extra public and private subnet in another AZ.
+  - Passing both public subnets to EKS.
+  - Passing both private subnets to RDS.
+
+### 9.10 RDS engine version error and fix 
+![RDS engine version error ](https://github.com/user-attachments/assets/e927c7b4-3004-4f0e-aa8f-337fc80474b5)
+
+fix: remove engine-version line and let AWS pick a valid default
+![rds engine](https://github.com/user-attachments/assets/1185acd4-36b7-4d69-a59b-aad81b850cc4)
+
+
+### 9.11 Terraform apply success
+![09-terraform-apply](https://github.com/user-attachments/assets/0d4c7e71-ccea-41bd-9c37-c43ac8dea628)
+
+VPC + EKS + RDS from AWS console
+![vpc](https://github.com/user-attachments/assets/e92eeaa1-6b46-4dc8-9350-147d0bacfef6)
+
+![eks](https://github.com/user-attachments/assets/7185623b-28c5-4f75-913a-1d54072d58d1)
+
+![postgres](https://github.com/user-attachments/assets/258a11e4-b981-435c-a63c-5410ffb09661)
+
+### 10.1 Initial cluster state
+![initial cluster state](https://github.com/user-attachments/assets/68d27a6d-fc47-47d7-90c2-b0e889de05fc)
+
+### 10.2 EKS cluster verification
+![eks cluster](https://github.com/user-attachments/assets/35d3556d-7b7a-411e-8034-14b6ad429a04)
+
+### 11 GitHub Actions secrets configured
+![12-github-secrets-configured](https://github.com/user-attachments/assets/6ea5f3d1-2569-47c4-93ab-ce9521f803e0)
+
+
+
+
+
 
 
