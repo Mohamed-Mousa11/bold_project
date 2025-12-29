@@ -1,6 +1,6 @@
 # Platform Engineering Assessment – AWS / EKS Solution
 
-This repository contains a minimal but production-oriented implementation of the **Platform Engineering Assessment** using **AWS** (Option C: AWS Focus). fileciteturn0file0L1-L200
+This repository contains the implementation of the **Platform Engineering Assessment** using **AWS**.
 
 It implements:
 
