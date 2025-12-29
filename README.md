@@ -11,7 +11,7 @@ It implements:
 - **GitHub Actions** for CI/CD
 - **Two environments** (staging + production) separated by Kubernetes namespaces and configuration
 
-The design follows the brief: simple, cost-conscious, and focused on the fundamentals rather than extra features. fileciteturn0file0L44-L96
+The design follows the brief: simple, cost-conscious, and focused on the fundamentals rather than extra features. 
 
 ---
 
@@ -533,4 +533,11 @@ If there were more time, here’s how I’d extend this setup:
         └── ci-cd.yaml
 ```
 
-This covers the **minimum required features** from the assessment while keeping the implementation pragmatic and easy to explain during an interview.
+## 9. Evidence / Screenshots
+### 9.1 Local repository setup
+![01-local-repo-remote png](https://github.com/user-attachments/assets/0c4b7bc1-f5dd-47c5-a3d8-dccbbc281fec)
+![02-vscode-project-open](https://github.com/user-attachments/assets/edbeaa75-2f3f-48e7-9aa6-d670a00fd0c7)
+
+
+
+
