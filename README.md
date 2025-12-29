@@ -11,7 +11,7 @@ It implements:
 - **GitHub Actions** for CI/CD
 - **Two environments** (staging + production) separated by Kubernetes namespaces and configuration
 
-The design follows the brief: simple, cost-conscious, and focused on the fundamentals rather than extra features. 
+
 
 ---
 
@@ -538,6 +538,8 @@ If there were more time, here’s how I’d extend this setup:
 ![01-local-repo-remote png](https://github.com/user-attachments/assets/0c4b7bc1-f5dd-47c5-a3d8-dccbbc281fec)
 ![02-vscode-project-open](https://github.com/user-attachments/assets/edbeaa75-2f3f-48e7-9aa6-d670a00fd0c7)
 
+### 9.2 Tooling verification
+![04-tool-versions](https://github.com/user-attachments/assets/d0dae2dd-3c1b-4a84-9e65-706bf1446149)
 
 
 
