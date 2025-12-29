@@ -34,13 +34,13 @@ resource "aws_security_group" "db" {
 
 resource "random_password" "db" {
   length  = 16
-  special = true
+  special = false 
 }
 
 resource "aws_db_instance" "this" {
   identifier           = var.db_identifier
   engine               = "postgres"
-  engine_version       = "15.4"
+  #engine_version is intentiionally omitted so AWS uses a valid default
   instance_class       = var.db_instance_class
   allocated_storage    = 20
   db_name              = var.db_name
