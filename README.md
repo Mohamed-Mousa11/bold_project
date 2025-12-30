@@ -6,7 +6,7 @@ It implements:
 
 - **Amazon EKS** as the managed Kubernetes cluster
 - **Amazon RDS for PostgreSQL** as the database
-- **AWS Elastic Load Balancer** created automatically via a Kubernetes `Service` of type `LoadBalancer`
+- **AWS Elastic Load Balancer** 
 - **Terraform** for infrastructure-as-code
 - **GitHub Actions** for CI/CD
 - **Two environments** (staging + production) separated by Kubernetes namespaces and configuration
@@ -53,7 +53,7 @@ It implements:
 
 - **Load Balancer**
   - Kubernetes `Service` of type `LoadBalancer`
-  - EKS provisions an AWS load balancer (NLB/CLB depending on AWS defaults)
+  - EKS provisions an AWS load balancer 
   - Each namespace (`staging`, `production`) gets its own external load balancer
 
 - **CI/CD (GitHub Actions)**
@@ -72,13 +72,11 @@ It implements:
 
 ### 2.1 Prerequisites
 
-You will need:
-
 - An AWS account (with permissions to create VPC, EKS, RDS, IAM, etc.)
 - **AWS CLI v2** installed and configured (`aws configure`)
 - **Terraform** ≥ 1.5
 - **kubectl** installed
-- A GitHub repository where you will push this code
+- A GitHub account
 
 Locally, authenticate with AWS:
 
@@ -90,11 +88,7 @@ aws configure
 
 ### 2.2 Provision AWS infrastructure with Terraform
 
-1. Go to the infra directory:
-
-```bash
-cd infra
-```
+1. Go to the infra directory
 
 2. Create a file `terraform.tfvars` with (at minimum) your desired region:
 
@@ -120,7 +114,7 @@ terraform apply
 
 This will create:
 
-- VPC with 1 public + 1 private subnet
+- VPC, subnets, security groups
 - EKS cluster + 1-node managed node group
 - RDS PostgreSQL (db.t3.micro) in private subnet
 - Required IAM roles / security groups
@@ -158,11 +152,9 @@ kubectl get nodes
 kubectl get ns
 ```
 
-You should see your worker node and the default namespaces.
-
 ---
 
-### 2.5 Configure GitHub repository secrets
+### 2.5 Configure GitHub Actions secrets
 
 In your GitHub repo, go to:
 
@@ -191,7 +183,7 @@ Use the same RDS instance for both environments (simple & cost‑effective):
 - `PROD_DB_USER` – same as `STAGING_DB_USER`
 - `PROD_DB_PASSWORD` – same as `STAGING_DB_PASSWORD`
 
-> In a real system you'd likely have separate databases or at least schemas per environment; here we share one instance + DB for cost and simplicity and call that out in the architecture decisions.
+> For cost reasons, a single RDS instance is shared in this assessment.
 
 ---
 
@@ -206,11 +198,10 @@ git push origin staging
 
 2. Watch the GitHub Actions workflow (`Actions` tab). It will:
 
-   - Build and push an image to ECR
-   - Run basic tests
-   - Scan with Trivy
-   - Deploy the app to the `staging` namespace
-   - Create a Kubernetes `Service` of type `LoadBalancer`
+  1. Build Docker image
+  2. Run basic tests
+  3. Trivy security scan
+  4. Deploy to EKS
 
 3. Once the workflow is green, get the public address:
 
@@ -264,7 +255,7 @@ This will delete the VPC, EKS, and RDS resources. Also delete the GitHub repo or
 
 1. **Cloud provider: AWS & EKS**
 
-   Option C (AWS) was chosen to align with the assessment’s AWS focus. EKS provides a managed control plane so we can concentrate on node configuration, networking, and CI/CD instead of running our own Kubernetes control plane. fileciteturn0file0L18-L40
+   Option C (AWS) was chosen to align with the assessment’s AWS focus. EKS provides a managed control plane so we can concentrate on node configuration, networking, and CI/CD instead of running our own Kubernetes control plane. Managed Kubernetes reduces operational overhead.
 
 2. **Single EKS cluster with two namespaces**
 
@@ -298,7 +289,7 @@ This will delete the VPC, EKS, and RDS resources. Also delete the GitHub repo or
 
 ## 4. Cost Optimization
 
-The brief explicitly mentions keeping costs low (< $20 and tearing down resources). fileciteturn0file0L146-L192
+The brief explicitly mentions keeping costs low (< $20 and tearing down resources). 
 
 Here’s how this repo supports that:
 
@@ -339,11 +330,11 @@ This setup is not production-grade for a large system, but it is appropriate for
      - `AmazonEKSWorkerNodePolicy`
      - `AmazonEKS_CNI_Policy`
      - `AmazonEC2ContainerRegistryReadOnly`
-   - GitHub Actions authenticates using an IAM access key stored as a secret (simple for a demo, but in real life you’d prefer GitHub OIDC + an assumable role).
+   - GitHub Actions authenticates using an IAM access key stored as a secret.
 
 4. **Container security**
 
-   - Images are based on `node:20-alpine` (small surface area).
+   - Images are based on `node:20-alpine`.
    - CI/CD scans the final image using **Trivy**, failing the pipeline if HIGH or CRITICAL vulnerabilities are found.
 
 5. **Kubernetes security**
@@ -394,7 +385,7 @@ Expected responses:
 
 If these fail, check:
 
-- Database connectivity (see next section)
+- Database connectivity 
 - Wrong DB host / credentials in ConfigMap or Secret
 - RDS instance status in AWS console
 
@@ -434,11 +425,7 @@ Common scenarios:
 
 - **Deploy failing**
   - Usually indicates an issue with `aws eks update-kubeconfig` or missing IAM permissions.
-  - Verify the GitHub Actions IAM user has permissions:
-    - `eks:DescribeCluster`
-    - `eks:ListClusters`
-    - `ecr:*` (or at least read/write)
-    - `sts:GetCallerIdentity`
+  - Verify the GitHub Actions IAM user has permissions.
 
 ---
 
@@ -460,14 +447,13 @@ If there were more time, here’s how I’d extend this setup:
    - Configure alerts for high error rates or Pod restarts.
 
 4. **Security hardening**
-   - Use GitHub OIDC + IAM role for CI/CD instead of static access keys.
    - Add Kubernetes NetworkPolicies to restrict pod-to-pod communication.
    - Use AWS Secrets Manager + CSI driver to mount secrets into pods.
 
 5. **Scalability and resilience**
    - Add a Horizontal Pod Autoscaler (HPA) based on CPU or custom metrics.
    - Configure multi-AZ node groups and RDS Multi-AZ for higher availability (at higher cost).
-   - Implement blue-green/canary deployment strategies (e.g. with Argo Rollouts).
+   - Implement blue-green/canary deployment strategies.
 
 ---
 
