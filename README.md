@@ -591,6 +591,28 @@ VPC + EKS + RDS from AWS console
 ### 11 GitHub Actions secrets configured
 ![12-github-secrets-configured](https://github.com/user-attachments/assets/6ea5f3d1-2569-47c4-93ab-ce9521f803e0)
 
+### 12 Trigger the GitHub Actions CI/CD pipeline for the `staging` environment
+  Image Security Scanning (Trivy)
+
+- CI/CD runs Trivy against the built Docker image (OS + library vulnerabilities).
+- For this demo, Trivy is configured with exit-code: 0 and severity: CRITICAL,HIGH:
+  - Vulnerabilities are still visible in pipeline logs.
+  - The pipeline does not block deployments on these findings during the assessment.
+- In a real production environment, the policy would likely be stricter (for example,
+  failing the pipeline on CRITICAL issues and requiring dependency upgrades).
+error screenshot:
+![scan error1](https://github.com/user-attachments/assets/2814491e-125b-4c7c-87c3-252b67a06ffd)
+![scan fail](https://github.com/user-attachments/assets/9f4409ac-3854-4c92-b854-384c19bd8f75)
+
+fix: change exit-code: from '1' to '0'
+
+![worked](https://github.com/user-attachments/assets/3157a374-50a1-4f90-8793-8a900051df21)
+
+### 12.1 GitHub Actions CI/CD pipeline `staging` environment success
+
+![worked](https://github.com/user-attachments/assets/fbb05411-1fb4-41ec-b6bc-1e118fa6a832)
+
+![staging succes](https://github.com/user-attachments/assets/c4bafb9c-e8e0-41c6-9f92-d540fd1ee147)
 
 
 
