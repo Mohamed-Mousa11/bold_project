@@ -17,15 +17,22 @@ It implements:
 
 ## 1. Architecture Overview
 
-### 1.1 High-level diagram
-
+### 1.1 High-level flow
+> Note: If your GitHub instance does not support Mermaid, you can ignore this block
+> and rely on the text description below.
 ```mermaid
 graph TD
-  User[User] -->|HTTP| ELB[AWS Load Balancer]
-  ELB --> K8sSvc[Service (type=LoadBalancer)]
-  K8sSvc --> Pod[Demo App Pod (Node.js)]
-  Pod -->|5432/tcp| RDS[(RDS PostgreSQL)]
+  User[User] --> ELB[AWS Load Balancer]
+  ELB --> SVC[Service (type=LoadBalancer)]
+  SVC --> POD[Demo App Pod (Node.js)]
+  POD --> RDS[(RDS PostgreSQL)]
 ```
+**Text version (if Mermaid is not rendered):**
+- User sends HTTP requests to an AWS Load Balancer.
+- The Load Balancer forwards traffic to a Kubernetes `Service` of type `LoadBalancer`.
+- The Service routes traffic to the demo app `Pod` running in EKS.
+- The app connects over TCP/5432 to an RDS PostgreSQL instance in private subnets.
+
 
 ### 1.2 Components
 
