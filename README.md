@@ -19,7 +19,8 @@ It implements:
 
 ### 1.1 High-level flow
 
-![photo_2025-12-30_19-13-38](https://github.com/user-attachments/assets/1e6c7c47-7733-42b1-8ead-c669cf0d9741)
+
+![photo_2025-12-30_20-09-12](https://github.com/user-attachments/assets/ea5aa599-2787-445a-a151-76c7ad60271b)
 
 
   
@@ -85,29 +86,9 @@ Locally, authenticate with AWS:
 aws configure
 # Enter: AWS Access Key, Secret, region (e.g. us-east-1), and default output json
 ```
-
-> **Tip:** For production use you’d normally use IAM roles and SSO instead of long‑lived access keys.
-
 ---
 
-### 2.2 Clone this repository
-
-If you downloaded this as a zip from ChatGPT, create a new git repo around it:
-
-```bash
-unzip platform-engineering-assessment-aws.zip
-cd platform-engineering-assessment-aws
-
-git init
-git remote add origin <your-github-repo-url>
-git add .
-git commit -m "Initial AWS platform assessment"
-git push -u origin main
-```
-
----
-
-### 2.3 Provision AWS infrastructure with Terraform
+### 2.2 Provision AWS infrastructure with Terraform
 
 1. Go to the infra directory:
 
