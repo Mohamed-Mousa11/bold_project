@@ -22,6 +22,29 @@ It implements:
 ![photo_2025-12-30_19-13-38](https://github.com/user-attachments/assets/1e6c7c47-7733-42b1-8ead-c669cf0d9741)
 
 
+> **Note:** If Mermaid diagrams are not rendered in your GitHub viewer, please refer to the text explanation below.
+
+```mermaid
+graph TD
+  User[User / Client]
+  ELB[AWS Load Balancer]
+  SVC[Kubernetes Service<br/>type=LoadBalancer]
+  POD[Demo App Pod<br/>Node.js]
+  RDS[(RDS PostgreSQL)]
+
+  User --> ELB
+  ELB --> SVC
+  SVC --> POD
+  POD --> RDS
+```
+
+**Text version (fallback):**
+
+- Users access the application through an AWS-managed Load Balancer.
+- The Load Balancer forwards traffic to a Kubernetes `Service` of type `LoadBalancer`.
+- The Service routes traffic to the demo application Pod running in Amazon EKS.
+- The application connects to an Amazon RDS PostgreSQL instance running in private subnets.
+  
 ### 1.2 Components
 
 - **VPC & Networking**
